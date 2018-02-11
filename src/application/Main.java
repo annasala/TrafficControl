@@ -85,9 +85,7 @@ public class Main extends Application {
 					String packetStr = packetSize.getText();
 					tht = new TrafficHandlerThread(addressStr, portStr, throughputStr, packetStr);
 					System.out.println("Address: "+addressStr+"\nPort: "+portStr+"\nThroughput: "+throughputStr+"\nPacketsize: "+packetStr);
-					 new Thread(
-		    	               tht
-		    	            ).start();
+					 new Thread(tht).start();
 				}
 				
 			});
@@ -99,6 +97,8 @@ public class Main extends Application {
 	            @Override
 	            public void handle(ActionEvent event) {
 	                System.out.println("Stopping server!");
+	                tht.setStopped(true);
+	               
 	            }
 	        });
 			end.setMinSize(60, 10);
