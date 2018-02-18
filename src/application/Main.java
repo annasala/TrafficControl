@@ -3,6 +3,8 @@ package application;
 
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -38,9 +40,20 @@ public class Main extends Application {
 	        vbox.setSpacing(5);
 	        vbox.setPadding(new Insets(10, 0, 0, 10));
 	        vbox.getChildren().add(grid);
-	        Scene scene = new Scene(vbox,400,300);
+	        Scene scene = new Scene(vbox,500,400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
+			GridPane gridForGtpVbox = new GridPane();
+			//gridForGtpVbox.setAlignment(Pos.CENTER);
+			gridForGtpVbox.setHgap(10);
+			gridForGtpVbox.setVgap(10);
+			Label gtpParameters = new Label("GTP Params");
+			
+			VBox additionalVboxForGTP = new VBox();
+			additionalVboxForGTP.setSpacing(5);
+			//additionalVboxForGTP.setPadding(new Insets(10, 0, 0, 10));
+			Label teidLab = new Label("TEID: ");
+			TextField teidTF = new TextField();
 			
 			TextField throughput = new TextField();
 			Label throughputLab = new Label("Throughput:");
@@ -48,11 +61,29 @@ public class Main extends Application {
 			Label protocolLab = new Label("Protocol:");
 			ObservableList<String> options = 
 				    FXCollections.observableArrayList(
-				        "UDP","GDP"
+				        "UDP","GTP"
 				     
 				    );
-				final ComboBox comBox = new ComboBox(options);
+				ComboBox comBox = new ComboBox();
+				comBox.getItems().addAll(options);
 				
+				comBox.getSelectionModel().selectFirst();
+				comBox.valueProperty().addListener(new ChangeListener<String>(){
+
+					@Override
+					public void changed(ObservableValue ov, String t, String t1){
+						additionalVboxForGTP.getChildren().clear();
+						if(t1.equals("GTP")){
+							additionalVboxForGTP.getChildren().add(gridForGtpVbox);
+							/*additionalVboxForGTP.getChildren().add(teidLab);
+							additionalVboxForGTP.getChildren().add(teidTF);*/
+							gridForGtpVbox.add(gtpParameters, 0,1);
+							gridForGtpVbox.add(teidLab,0,2);
+							gridForGtpVbox.add(teidTF, 1, 2);
+;						}
+						
+					}
+					});
 			grid.add(protocolLab, 0, 0);
 			grid.add(comBox, 1, 0);	
 				
@@ -73,7 +104,8 @@ public class Main extends Application {
 			grid.add(throughputLab, 0,4 );
 			grid.add(packetSize, 1, 5);
 			grid.add(packetSizeLab, 0,5 );
-	      
+			grid.add(additionalVboxForGTP, 0, 6);
+			
 			Button start = new Button("Start");
 			start.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -83,6 +115,9 @@ public class Main extends Application {
 					String portStr = port.getText();
 					String throughputStr = throughput.getText();
 					String packetStr = packetSize.getText();
+					if(portStr.equals("")|| addressStr.equals("")){
+						return;
+					}
 					tht = new TrafficHandlerThread(addressStr, portStr, throughputStr, packetStr);
 					System.out.println("Address: "+addressStr+"\nPort: "+portStr+"\nThroughput: "+throughputStr+"\nPacketsize: "+packetStr);
 					 new Thread(tht).start();
@@ -96,9 +131,11 @@ public class Main extends Application {
 				 
 	            @Override
 	            public void handle(ActionEvent event) {
-	                System.out.println("Stopping server!");
+	            	if(tht!=null){
+	            		   System.out.println("Stopping server!");
 	                tht.setStopped(true);
-	               
+	            	}
+	             
 	            }
 	        });
 			end.setMinSize(60, 10);
